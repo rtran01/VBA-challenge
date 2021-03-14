@@ -1,0 +1,135 @@
+Sub stocks()
+
+'DEFINING VARIABLE TYPES
+    Dim t As Long
+    Dim endnumber As Double
+    Dim i As Double
+    Dim y1 As Double
+    Dim y2 As Double
+    Dim v As Double
+    Dim PP As Double
+    Dim PN As Double
+    Dim GT As Double
+'t=ticker,endnumber=count of last row,i=For loop counter, y1=1st opening year price,y2=Last year closing,v=Volume variable, PP=Largest %, PN=Smallest %, GT=Largest total 
+    
+'FOR EACH WORKSHEET LOOP
+For Each ws In Worksheets
+
+'LABELING HEADERS FOR EACH WORKSHEET
+  ws.Cells(1, 9).Value = "Ticker"
+  ws.Cells(1, 10).Value = "Yearly Change"
+  ws.Cells(1, 11).Value = "Percent Change"
+  ws.Cells(1, 12).Value = "Stock Volume"
+  ws.Cells(2, 15).Value = "Greatest % Increase"
+  ws.Cells(3, 15).Value = "Greatest % Decrease"
+  ws.Cells(4, 15).Value = "Greatest Total Volume"
+  ws.Cells(1, 16).Value = "Ticker"
+  ws.Cells(1, 17).Value = "Value"
+
+    'RESETTING VARIABLES FOR EACH WORKSHEET
+    GT = 0
+    PP = 0
+    PN = 0
+    t = 2
+
+    'SETTING FIRST OPENING YEAR PRICE
+    y1 = ws.Cells(t, 3).Value
+    
+    'SETTING COUNT OF ROWS USING TICKER COLUMN
+    endnumber = ws.Cells(Rows.Count, 1).End(xlUp).Row
+    
+    'FIRST FOR LOOP TO ANALYZE DATA STARTING AT ROW 2
+    For i = 2 To endnumber
+     
+    'SUMMATION OF STOCK VOLUME OUTSIDE OF FIRST IF STATEMENT TO PREVENT RESET
+     v = v + ws.Cells(i, 7).Value
+     
+       'FIRST IF STATEMENT FOR GRABBING UNIQUE TICKERS AND CALCULATING VARIABLES
+        If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1) Then
+        
+          'ADDITION OF UNIQUE TICKERS
+           ws.Cells(t, 9).Value = ws.Cells(i, 1).Value
+          
+          'FIRST IF STATEMENT CAPTURES CHANGE IN TICKER AS WELL AS FINAL CLOSING DATE OF PREVIOUS TICKER USING ROW i
+           y2 = ws.Cells(i, 6).Value
+            
+           'OPENING AND CLOSING IS DEFINED, YEARLY CHANGE IS CALCULATED
+           ws.Cells(t, 10).Value = y2 - y1
+            
+            'SECOND IF STATEMENT FOR CONDITIONAL FORMATING YEARLY CHANGE
+            If y2 - y1 > 0 Then
+                ws.Cells(t, 10).Interior.ColorIndex = 4
+              Else
+                ws.Cells(t, 10).Interior.ColorIndex = 3
+            End If
+            
+            'THIRD IF STATEMENT TO ACCOMODATE FOR 0/0 AND TO CALCULATE PERCENT
+            If y2 <> 0 And y1 <> 0 Then
+                ws.Cells(t, 11).Value = (y2 - y1) / y1
+             
+                'FOURTH IF STATEMENT TO COMPARE AND STORE THE HIGHEST PERCENTAGE
+                If ws.Cells(t, 11).Value > PP Then
+                    PP = ws.Cells(t, 11)
+                End If
+                
+                'FIFTH IF STATEMENT TO COMPARE AND STORE LOWEST PERCENTAGE
+                If ws.Cells(t, 11).Value < PN Then
+                    PN = ws.Cells(t, 11)
+                End If
+             
+            'ELSE OF THIRD IF STATEMENT WHEN 0/0 IS ENCOUNTERED
+            Else
+              ws.Cells(t, 11).Value = "0.00"
+           'ENDIF OF THIRD IF STATEMENT
+           End If
+           
+         'PRINTING OF TOTAL VOLUME
+         ws.Cells(t, 12).Value = v
+         
+         'TICKER LOCATION CHANGE FOR EACH UNIQUE TICKER
+         t = t + 1
+         
+         'RESET OF FIRST CLOSING FOR NEW TICKER
+         y1 = ws.Cells(i + 1, 3).Value
+         
+         'RESET OF VOLUME FOR NEW TICKER
+         v = ws.Cells(i + 1, 7).Value
+         
+        'END OF FIRST IF STATEMENT
+        End If
+    
+    'END OF FIRST FOR LOOP
+    Next i
+    
+    'BONUS TABLE ADDITION FOR HIGHEST AND LOWEST %
+      'PP AND PN WERE CALCCULATED IN LOOP FOURTH AND FIFTH IF STATEMENT IN THE FIRST FOR LOOP
+    ws.Cells(2, 17).Value = PP
+    ws.Cells(3, 17).Value = PN
+    ws.Range("Q2:Q3").NumberFormat = "0.00%"
+    ws.Range("k:k").NumberFormat = "0.00%"
+    ws.Range("j:j").NumberFormat = "0.00"
+
+    'BONUS FOR LOOP TO FIND THE HIGHEST AND LOWEST %, HIGHEST TOTAL VOLUME, AND CORRESPONDING TICKERS
+    endnumber = ws.Cells(Rows.Count, 9).End(xlUp).Row
+    For i = 2 To endnumber
+    
+        If ws.Cells(i, 11).Value = PP Then
+            ws.Cells(2, 16).Value = ws.Cells(i, 9)
+        End If
+    
+        If ws.Cells(i, 11).Value = PN Then
+            ws.Cells(3, 16).Value = ws.Cells(i, 9)
+        End If
+        
+        If ws.Cells(i, 12).Value > GT Then
+            GT = ws.Cells(i, 12)
+            ws.Cells(4, 16).Value = ws.Cells(i, 9).Value
+        End If
+    Next i
+
+    'OUTPUT OF HIGHEST VOLUME
+    ws.Cells(4, 17).Value = GT
+
+Next ws
+  
+End Sub
